@@ -1,0 +1,6 @@
+---
+applications:
+- name: PanosCloudApp
+  memory: 512M
+  host: PanosCloudApp
+  domain: mybluemix.net

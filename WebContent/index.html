@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<!-- 
+Copyright 2016 the project authors as listed in the AUTHORS file.
+All rights reserved. Use of this source code is governed by the
+license that can be found in the LICENSE file.
+-->
+<html>
+<head>
+	<title>Cloud GC App</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no"/>
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<link rel="stylesheet" href="styles/style.css" />
+	<link href="styles/jquery-ui.min.css" rel="stylesheet">
+	
+	<script src="scripts/Chart.js"></script>
+	<script src="scripts/jquery-2.2.1.min.js"></script>
+	<script src="scripts/jquery-ui.min.js"></script>
+	<script src="scripts/main.js"></script>
+	
+</head>
+<body>
+	<div id="canvasDiv">
+		<ul>
+			<li><a href="#tabs-01">Used Heap (MB)</a></li>
+			<li><a href="#tabs-02">Average Response Time (s)</a></li>
+			<li><a href="#tabs-03">Average Throughput </a></li>
+			<li><a href="#tabs-04">Reclaimed per GC (MB)</a></li>
+			<li><a href="#tabs-05">Requests per GC </a></li>
+		</ul>
+		<div id="tabs-01"><canvas id="heap"></canvas></div>
+		<div id="tabs-02"><canvas id="resp"></canvas></div>
+		<div id="tabs-03"><canvas id="thru"></canvas></div>
+		<div id="tabs-04"><canvas id="recl"></canvas></div>
+		<div id="tabs-05"><canvas id="reqs"></canvas></div>
+	</div>
+	<div id="controlDiv">
+		<ul>
+			<li><a href="#tabs-1">Requests</a></li>
+			<li><a href="#tabs-2">Actions</a></li>
+			<li><a href="#tabs-3">Sizes</a></li>
+			<li><a href="#tabs-4">Other settings</a></li>
+		</ul>
+		<div id="tabs-1">
+			<button id="onButton" class="ui-state-default ui-corner-all">Start</button>
+			<button id="initButton" class="ui-state-default ui-corner-all">Initialize</button>
+		
+			<p>
+			  <label for="requestWaitValue">Waiting time per request (ms):</label>
+			  <input type="text" id="requestWaitLabel" readonly class="textLike">
+			</p>
+			<div id="requestWaitSlider"></div>
+			
+			<p>
+			  <label for="requestThreadsValue">Number of parallel requests:</label>
+			  <input type="text" id="requestThreadsLabel" readonly class="textLike">
+			</p>
+			<div id="requestThreadsSlider"></div>
+		</div>
+		<div id="tabs-2">
+			<div id="eq">
+			  <span><p>0</p><div id="0" param="READ">0</div><p>Read</p></span>
+			  <span><p>0</p><div id="1" param="WRITE">0</div><p>Write</p></span>
+			  <span><p>25</p><div id="2" param="REFCHANGE">25</div><p>Reference Change</p></span>
+			  <span><p>25</p><div id="3" param="ALLOC">25</div><p>Allocate</p></span>
+			  <span><p>25</p><div id="4" param="ADD">25</div><p>Add Root</p></span>
+			  <span><p>25</p><div id="5" param="REMOVE">25</div><p>Remove Root</p></span>
+			</div>
+			<div id="actions">
+				<p>
+				  <label for="actionsNumberValue">Actions/Request:</label>
+				  <span id="actionsNumberLabel" class="textLike"></span>
+				</p>
+				<div id="actionsNumberSlider"></div>
+				<p>
+				  <label for="localNumberValue">Local Actions:</label>
+				  <span id="localNumberLabel" class="textLike"></span>%
+				</p>
+				<div id="localNumberSlider"></div>
+			</div>
+			<div id="pieChart">
+				<canvas id="actionRatios" width="150" height="150"></canvas>
+			</div>
+		</div>
+		<div id="tabs-3">
+			<p>
+			  <label for="payloadNumberValue">Object Payload:</label>
+			  <span id="payloadMinNumberLabel" class="textLike"></span>
+			  (<span id="payloadMedNumberLabel" class="textLike"></span>)
+			  <span type="text" id="payloadMaxNumberLabel" class="textLike"></span>
+			</p>
+			<div id="payloadNumberSlider"></div>
+			<p>
+			  <label for="payloadNumberValue">Object References:</label>
+			  <span id="refsMinNumberLabel" class="textLike"></span>
+			  (<span id="refsMedNumberLabel" class="textLike"></span>)
+			  <span type="text" id="refsMaxNumberLabel" class="textLike"></span>
+			</p>
+			<div id="refsNumberSlider"></div>
+		</div>
+		<div id="tabs-4">
+			<p>
+			  <label for="pointsValue">Number of visible points:</label>
+			  <input type="text" id="pointsLabel" readonly class="textLike">
+			</p>
+			<div id="pointsSlider"></div>
+		</div>
+	</div>
+</body>
+</html>
