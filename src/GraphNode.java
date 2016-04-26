@@ -9,8 +9,8 @@ public class GraphNode {
 	private byte[] payload;
 
 	public GraphNode() {		
-		int payloadSize = (int) Distribution.rand(Settings.MIN_PAYLOAD_SIZE, Settings.MAX_PAYLOAD_SIZE, Settings.MED_PAYLOAD_SIZE);
-		int n = (int) (Distribution.rand(Settings.MIN_REFS, Settings.MAX_REFS, Settings.MED_REFS)); 		
+		int payloadSize = (int) Distribution.rand(Settings.getIntProperty("MIN_PAYLOAD_SIZE"), Settings.getIntProperty("MAX_PAYLOAD_SIZE"), Settings.getIntProperty("MED_PAYLOAD_SIZE"));
+		int n = (int) (Distribution.rand(Settings.getIntProperty("MIN_REFS"), Settings.getIntProperty("MAX_REFS"), Settings.getIntProperty("MED_REFS"))); 		
 		
 		children = new GraphNode[n];
 		payload = new byte[payloadSize];

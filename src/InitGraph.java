@@ -30,8 +30,8 @@ public class InitGraph extends HttpServlet {
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		int allocs = Settings.INIT_ALLOCS;
-		int refChanges = Settings.INIT_REF_CHANGES;
+		int allocs = Settings.getIntProperty("INIT_ALLOCS");
+		int refChanges = Settings.getIntProperty("INIT_REF_CHANGES");
 		
 		Graph.globalGraph.emptyAllAndGC();
 		Distribution.reSeed();
@@ -41,8 +41,13 @@ public class InitGraph extends HttpServlet {
 		}
 		
 		for(int i = 0; i < refChanges; i++){
+			Graph.globalGraph.add();
+		}
+		
+		for(int i = 0; i < refChanges; i++){
 			Graph.globalGraph.changeRef();
 		}
+		
 		
 		Runtime runtime = Runtime.getRuntime();
 		response.getWriter().append("" + (runtime.totalMemory() - runtime.freeMemory())+"\n");

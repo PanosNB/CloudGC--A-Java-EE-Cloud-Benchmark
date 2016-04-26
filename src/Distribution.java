@@ -8,10 +8,10 @@ import java.util.Random;
 
 public class Distribution {
 	
-	public static volatile Random rand = new Random(Settings.SEED);
+	public static volatile Random rand = new Random(Settings.getIntProperty("SEED"));
 	
 	public static synchronized void reSeed(){
-		rand = new Random(Settings.SEED);
+		rand = new Random(Settings.getIntProperty("SEED"));
 	}
 	
 	public static double randU(){

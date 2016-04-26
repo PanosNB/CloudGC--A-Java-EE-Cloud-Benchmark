@@ -34,15 +34,15 @@ public class GraphAction extends HttpServlet {
 		
 		Graph localGraph = new Graph();
 		
-		for(int i = 0; i < Settings.ACTIONS_PER_REQUEST; i++){
-			if(Distribution.randU() < Settings.LOCAL_ACTION_RATIO){
+		for(int i = 0; i < Settings.getIntProperty("ACTIONS_PER_REQUEST"); i++){
+			if(Distribution.randU() < Settings.getIntProperty("LOCAL_ACTION_RATIO")){
 				localGraph.doRandAction();
 			} else {
 				Graph.globalGraph.doRandAction();
 			}
 		}
 		Runtime runtime = Runtime.getRuntime();
-		//response.getWriter().append("" + (System.currentTimeMillis())+"\n");
+		response.getWriter().append("" + (System.currentTimeMillis())+"\n");
 		response.getWriter().append("" + (runtime.totalMemory() - runtime.freeMemory())+"\n");
 	}
 

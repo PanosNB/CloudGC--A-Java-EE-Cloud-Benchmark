@@ -6,11 +6,14 @@ license that can be found in the LICENSE file.
 
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.Semaphore;
 
 public final class Graph {
 	private final ConcurrentLinkedDeque<GraphNode> root = new ConcurrentLinkedDeque<GraphNode>();
 	
 	public static final Graph globalGraph = new Graph(); 
+	
+	public final Semaphore sharedResource = new Semaphore(Settings.getIntProperty("SHARED_RESOURCE_SIZE"));
 	
 	private void read(){
 		GraphNode obj = getRandomObj(true);
@@ -40,14 +43,14 @@ public final class Graph {
 		GraphNode parent = getRandomObj(false);
 		GraphNode child = new GraphNode();
 		
-		if(parent!=null && Distribution.randU() > Settings.ALLOCATE_ON_ROOTSET_RATIO){
+		if(parent!=null && Distribution.randU() > Settings.getIntProperty("ALLOCATE_ON_ROOTSET_RATIO")){
 			parent.setRandRef(child);
 		} else {
 			root.add(child);
 		}
 	}
 	
-	private void add(){
+	public void add(){
 		GraphNode obj = getRandomObj(true);
 		
 		if(obj!=null){
@@ -64,11 +67,23 @@ public final class Graph {
 		
 		long rootCount = root.size();
 		
-		long id = (long) (rootCount - 1 - (rootCount-1)*Distribution.rand(0, 1, Settings.OBJECTS_DIE_YOUNG_BIAS));
+		long id = (long) (rootCount - 1 - (rootCount-1)*Distribution.rand(0, 1, Settings.getIntProperty("OBJECTS_DIE_YOUNG_BIAS")));
 		
 		GraphNode obj = getRoot(id);
 		
 		root.remove(obj);
+	}
+	
+	private void block() {
+		try{
+			sharedResource.acquire();
+			Thread.sleep(Settings.getIntProperty("SHARED_RESOURCE_TIME"));
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			sharedResource.release();
+		}
 	}
 	
 	private GraphNode getRandomObj(boolean uniform){
@@ -82,7 +97,7 @@ public final class Graph {
 		if(uniform){
 			id = Distribution.randULong(rootCount);
 		} else {
-			id = (long) (rootCount - 1 - (rootCount-1)*Distribution.rand(0, 1, Settings.OBJECTS_DIE_YOUNG_BIAS));
+			id = (long) (rootCount - 1 - (rootCount-1)*Distribution.rand(0, 1, Settings.getIntProperty("OBJECTS_DIE_YOUNG_BIAS")));
 		}
 		
 		GraphNode obj = getRoot(id);
@@ -92,7 +107,7 @@ public final class Graph {
 		}
 		
 		int i = 0;
-		while(Distribution.randU() < Settings.DEPTH_PROBABILITY && i++ < Settings.MAX_DEPTH){
+		while(Distribution.randU() < Settings.getIntProperty("DEPTH_PROBABILITY") && i++ < Settings.getIntProperty("MAX_DEPTH")){
 			GraphNode child = obj.getRandRef();
 			if(child == null){
 				return obj;
@@ -119,12 +134,7 @@ public final class Graph {
 	public void doRandAction() {
 		double rnd = Distribution.randU();
 		
-		for(int i = 0; i < Settings.ACTION_RATIOS.length; i++){
-			if(rnd < Settings.getProbRange(i)){
-				doAction(i);
-				return;
-			}
-		}		
+		doAction(Settings.getRandAction(rnd));	
 	}
 	
 	public synchronized void emptyAllAndGC(){
@@ -152,7 +162,9 @@ public final class Graph {
 		case 5:
 			remove();
 			break;
+		case 6:
+			block();
+			break;
 		}
 	}
-
 }

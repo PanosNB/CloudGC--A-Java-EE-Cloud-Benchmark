@@ -288,6 +288,8 @@ function performCall(){
 	$.get({
 		url: "/GraphAction", 
 		success: function(val){
+			val = val.split("\n")[1];
+			
 			t = Math.floor((Date.now() - t0)/1000);
 			dt = Date.now() - requestQueue.shift();
 		
