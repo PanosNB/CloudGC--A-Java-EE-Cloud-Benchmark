@@ -43,7 +43,7 @@ public final class Graph {
 		GraphNode parent = getRandomObj(false);
 		GraphNode child = new GraphNode();
 		
-		if(parent!=null && Distribution.randU() > Settings.getIntProperty("ALLOCATE_ON_ROOTSET_RATIO")){
+		if(parent!=null && Distribution.randU() > Settings.getDoubleProperty("ALLOCATE_ON_ROOTSET_RATIO")){
 			parent.setRandRef(child);
 		} else {
 			root.add(child);
@@ -67,7 +67,7 @@ public final class Graph {
 		
 		long rootCount = root.size();
 		
-		long id = (long) (rootCount - 1 - (rootCount-1)*Distribution.rand(0, 1, Settings.getIntProperty("OBJECTS_DIE_YOUNG_BIAS")));
+		long id = (long) (rootCount - 1 - (rootCount-1)*Distribution.rand(0, 1, Settings.getDoubleProperty("OBJECTS_DIE_YOUNG_BIAS")));
 		
 		GraphNode obj = getRoot(id);
 		
@@ -97,7 +97,7 @@ public final class Graph {
 		if(uniform){
 			id = Distribution.randULong(rootCount);
 		} else {
-			id = (long) (rootCount - 1 - (rootCount-1)*Distribution.rand(0, 1, Settings.getIntProperty("OBJECTS_DIE_YOUNG_BIAS")));
+			id = (long) (rootCount - 1 - (rootCount-1)*Distribution.rand(0, 1, Settings.getDoubleProperty("OBJECTS_DIE_YOUNG_BIAS")));
 		}
 		
 		GraphNode obj = getRoot(id);
@@ -107,7 +107,7 @@ public final class Graph {
 		}
 		
 		int i = 0;
-		while(Distribution.randU() < Settings.getIntProperty("DEPTH_PROBABILITY") && i++ < Settings.getIntProperty("MAX_DEPTH")){
+		while(Distribution.randU() < Settings.getDoubleProperty("DEPTH_PROBABILITY") && i++ < Settings.getIntProperty("MAX_DEPTH")){
 			GraphNode child = obj.getRandRef();
 			if(child == null){
 				return obj;

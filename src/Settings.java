@@ -57,6 +57,15 @@ public class Settings {
 		}
 	}
 	
+	public static double getDoubleProperty(String key){
+		try{
+			return Double.parseDouble(properties.getProperty(key));
+		} catch (Exception e){
+			e.printStackTrace();
+			return -1;
+		}
+	}
+	
 	public static synchronized void setProperty(String key, String value){
 		properties.remove(key);
 		properties.put(key, value);

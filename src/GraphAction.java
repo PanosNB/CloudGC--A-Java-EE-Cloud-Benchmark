@@ -35,7 +35,7 @@ public class GraphAction extends HttpServlet {
 		Graph localGraph = new Graph();
 		
 		for(int i = 0; i < Settings.getIntProperty("ACTIONS_PER_REQUEST"); i++){
-			if(Distribution.randU() < Settings.getIntProperty("LOCAL_ACTION_RATIO")){
+			if(Distribution.randU() < Settings.getDoubleProperty("LOCAL_ACTION_RATIO")){
 				localGraph.doRandAction();
 			} else {
 				Graph.globalGraph.doRandAction();
