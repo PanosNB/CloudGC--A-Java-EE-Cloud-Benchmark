@@ -37,7 +37,10 @@ public class ChangeSettings extends HttpServlet {
 		while(keys.hasMoreElements()){
 			String key = keys.nextElement();
 			Settings.setProperty(key, request.getParameter(key));
+			response.getOutputStream().println(key + "=>" + request.getParameter(key));
 		}
+		response.getOutputStream().println(Settings.getAllJSON());
+		Tracing.logChanges();
 	}
 
 	/**

@@ -33,19 +33,15 @@ public class InitGraph extends HttpServlet {
 		int allocs = Settings.getIntProperty("INIT_ALLOCS");
 		int refChanges = Settings.getIntProperty("INIT_REF_CHANGES");
 		
-		Graph.globalGraph.emptyAllAndGC();
+		GraphAction.globalGraph.emptyAllAndGC();
 		Distribution.reSeed();
 		
 		for(int i = 0; i < allocs; i++){
-			Graph.globalGraph.allocate();
+			GraphAction.globalGraph.allocate();
 		}
-		
+				
 		for(int i = 0; i < refChanges; i++){
-			Graph.globalGraph.add();
-		}
-		
-		for(int i = 0; i < refChanges; i++){
-			Graph.globalGraph.changeRef();
+			GraphAction.globalGraph.changeRef();
 		}
 		
 		

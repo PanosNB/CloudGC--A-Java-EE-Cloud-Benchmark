@@ -14,11 +14,11 @@ public class Distribution {
 		rand = new Random(Settings.getIntProperty("SEED"));
 	}
 	
-	public static double randU(){
+	public synchronized static double randU(){
 		return rand.nextDouble();
 	}
 	
-	public static int randUInt(int max){
+	public synchronized static int randUInt(int max){
 		if(max>=1){
 			return rand.nextInt(max);
 		} else {
@@ -26,7 +26,7 @@ public class Distribution {
 		}
 	}
 	
-	public static long randULong(long max){
+	public synchronized static long randULong(long max){
 		if(max>=1){
 			return rand.nextLong() % max;
 		} else {

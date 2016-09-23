@@ -4,6 +4,7 @@ All rights reserved. Use of this source code is governed by the
 license that can be found in the LICENSE file.
 */
 
+import java.io.PrintWriter;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.Semaphore;
@@ -11,10 +12,14 @@ import java.util.concurrent.Semaphore;
 public final class Graph {
 	private final ConcurrentLinkedDeque<GraphNode> root = new ConcurrentLinkedDeque<GraphNode>();
 	
-	public static final Graph globalGraph = new Graph(); 
-	
 	public final Semaphore sharedResource = new Semaphore(Settings.getIntProperty("SHARED_RESOURCE_SIZE"));
 	
+	private final boolean isGlobal;
+	
+	public Graph(boolean isGlobal) {
+		this.isGlobal = isGlobal;
+	}
+
 	private void read(){
 		GraphNode obj = getRandomObj(true);
 		if(obj != null){
@@ -41,10 +46,11 @@ public final class Graph {
 	
 	public void allocate(){
 		GraphNode parent = getRandomObj(false);
-		GraphNode child = new GraphNode();
+		GraphNode child = new GraphNode(isGlobal);
 		
 		if(parent!=null && Distribution.randU() > Settings.getDoubleProperty("ALLOCATE_ON_ROOTSET_RATIO")){
 			parent.setRandRef(child);
+			Tracing.del(child, isGlobal);
 		} else {
 			root.add(child);
 		}
@@ -56,6 +62,7 @@ public final class Graph {
 		if(obj!=null){
 			if(!root.contains(obj)){
 				root.add(obj);
+				Tracing.add(obj, isGlobal);
 			}
 		}
 	}
@@ -72,6 +79,7 @@ public final class Graph {
 		GraphNode obj = getRoot(id);
 		
 		root.remove(obj);
+		Tracing.del(obj, isGlobal);
 	}
 	
 	private void block() {
@@ -119,7 +127,6 @@ public final class Graph {
 	}
 	
 	private GraphNode getRoot(long pos){
-		GraphNode obj =  null;
 		Iterator<GraphNode> it = root.descendingIterator();
 		for(long i=0; i<pos && it.hasNext(); i++){
 			it.next();
@@ -131,10 +138,12 @@ public final class Graph {
 		}
 	}
 
-	public void doRandAction() {
+	public void doRandAction(PrintWriter out) {
 		double rnd = Distribution.randU();
 		
-		doAction(Settings.getRandAction(rnd));	
+		int action = Settings.getRandAction(rnd);
+
+		doAction(action);	
 	}
 	
 	public synchronized void emptyAllAndGC(){
@@ -166,5 +175,14 @@ public final class Graph {
 			block();
 			break;
 		}
+	}
+
+	public void empty() {
+		Iterator<GraphNode> it = root.descendingIterator();
+		for(long i=0; it.hasNext(); i++){
+			GraphNode obj = it.next();
+			Tracing.del(obj, false);
+		}
+		root.clear();
 	}
 }
