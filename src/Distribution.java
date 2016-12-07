@@ -8,17 +8,21 @@ import java.util.Random;
 
 public class Distribution {
 	
-	public static volatile Random rand = new Random(Settings.getIntProperty("SEED"));
+	private Random rand;
 	
-	public static synchronized void reSeed(){
+	public Distribution(){
 		rand = new Random(Settings.getIntProperty("SEED"));
 	}
 	
-	public synchronized static double randU(){
+	public void reSeed(){
+		rand = new Random(Settings.getIntProperty("SEED"));
+	}
+	
+	public double randU(){
 		return rand.nextDouble();
 	}
 	
-	public synchronized static int randUInt(int max){
+	public int randUInt(int max){
 		if(max>=1){
 			return rand.nextInt(max);
 		} else {
@@ -26,7 +30,7 @@ public class Distribution {
 		}
 	}
 	
-	public synchronized static long randULong(long max){
+	public long randULong(long max){
 		if(max>=1){
 			return rand.nextLong() % max;
 		} else {
@@ -34,7 +38,7 @@ public class Distribution {
 		}
 	}
 
-	public static double rand(double min, double max, double med){
+	public double rand(double min, double max, double med){
 		double U = randU();
 		
 		double delta = (min-max)*(min-max)-4*(med-min)*(max-med);

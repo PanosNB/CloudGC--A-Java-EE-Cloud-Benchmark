@@ -38,27 +38,25 @@ public class GraphAction extends HttpServlet {
 		
 		int allocs = Settings.getIntProperty("INIT_ALLOCS");
 		int refChanges = Settings.getIntProperty("INIT_REF_CHANGES");
-		
-		localGraph.emptyAllAndGC();
-		Distribution.reSeed();
+		Distribution dist = new Distribution();
 		
 		for(int i = 0; i < allocs; i++){
 			//if(Distribution.randU() < Settings.getDoubleProperty("LOCAL_ACTION_RATIO")){
-				localGraph.allocate();
+				localGraph.allocate(dist);
 			//} else {
 			//	globalGraph.allocate();
 			//}
 		}
 				
 		for(int i = 0; i < refChanges; i++){
-			localGraph.changeRef();
+			localGraph.changeRef(dist);
 		}
 		
 		for(int i = 0; i < Settings.getIntProperty("ACTIONS_PER_REQUEST"); i++){
-			if(Distribution.randU() < Settings.getDoubleProperty("LOCAL_ACTION_RATIO")){
-				localGraph.doRandAction(response.getWriter());
+			if(dist.randU() < Settings.getDoubleProperty("LOCAL_ACTION_RATIO")){
+				localGraph.doRandAction(response.getWriter(), dist);
 			} else {
-				globalGraph.doRandAction(response.getWriter());
+				globalGraph.doRandAction(response.getWriter(), dist);
 			}
 		}
 		localGraph.empty();

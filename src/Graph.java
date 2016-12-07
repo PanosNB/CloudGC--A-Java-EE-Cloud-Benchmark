@@ -20,44 +20,44 @@ public final class Graph {
 		this.isGlobal = isGlobal;
 	}
 
-	private void read(){
-		GraphNode obj = getRandomObj(true);
+	private void read(Distribution dist){
+		GraphNode obj = getRandomObj(true, dist, false);
 		if(obj != null){
-			obj.readRand();
+			obj.readRand(dist);
 		}
 	}
 	
 
-	private void write() {
-		GraphNode obj = getRandomObj(true);
+	private void write(Distribution dist) {
+		GraphNode obj = getRandomObj(true, dist, false);
 		if(obj != null){
-			obj.writeRand();
+			obj.writeRand(dist);
 		}		
 	}
 	
-	public void changeRef(){
-		GraphNode parent = getRandomObj(false);
-		GraphNode child = getRandomObj(false);
+	public void changeRef(Distribution dist){
+		GraphNode parent = getRandomObj(false, dist, false);
+		GraphNode child = getRandomObj(false, dist, false);
 		
 		if(parent!=null){
-			parent.setRandRef(child);
+			parent.setRandRef(child, dist);
 		}
 	}
 	
-	public void allocate(){
-		GraphNode parent = getRandomObj(false);
-		GraphNode child = new GraphNode(isGlobal);
+	public void allocate(Distribution dist){
+		GraphNode parent = getRandomObj(false, dist, true);
+		GraphNode child = new GraphNode(isGlobal, dist);
 		
-		if(parent!=null && Distribution.randU() > Settings.getDoubleProperty("ALLOCATE_ON_ROOTSET_RATIO")){
-			parent.setRandRef(child);
+		if(parent!=null && dist.randU() > Settings.getDoubleProperty("ALLOCATE_ON_ROOTSET_RATIO")){
+			parent.setRef(parent.getFreeSlot(), child);
 			Tracing.del(child, isGlobal);
 		} else {
 			root.add(child);
 		}
 	}
 	
-	public void add(){
-		GraphNode obj = getRandomObj(true);
+	public void add(Distribution dist){
+		GraphNode obj = getRandomObj(true, dist, false);
 		
 		if(obj!=null){
 			if(!root.contains(obj)){
@@ -67,14 +67,14 @@ public final class Graph {
 		}
 	}
 	
-	private synchronized void remove(){
+	private synchronized void remove(Distribution dist){
 		if(root.isEmpty()){
 			return;
 		}
 		
 		long rootCount = root.size();
 		
-		long id = (long) (rootCount - 1 - (rootCount-1)*Distribution.rand(0, 1, Settings.getDoubleProperty("OBJECTS_DIE_YOUNG_BIAS")));
+		long id = (long) (rootCount - 1 - (rootCount-1)*dist.rand(0, 1, Settings.getDoubleProperty("OBJECTS_DIE_YOUNG_BIAS")));
 		
 		GraphNode obj = getRoot(id);
 		
@@ -94,7 +94,7 @@ public final class Graph {
 		}
 	}
 	
-	private GraphNode getRandomObj(boolean uniform){
+	private GraphNode getRandomObj(boolean uniform, Distribution dist, boolean noOverwrite){
 		if(root.isEmpty()){
 			return null;
 		}
@@ -103,9 +103,9 @@ public final class Graph {
 		long rootCount = root.size();
 		
 		if(uniform){
-			id = Distribution.randULong(rootCount);
+			id = dist.randULong(rootCount);
 		} else {
-			id = (long) (rootCount - 1 - (rootCount-1)*Distribution.rand(0, 1, Settings.getDoubleProperty("OBJECTS_DIE_YOUNG_BIAS")));
+			id = (long) (rootCount - 1 - (rootCount-1)*dist.rand(0, 1, Settings.getDoubleProperty("OBJECTS_DIE_YOUNG_BIAS")));
 		}
 		
 		GraphNode obj = getRoot(id);
@@ -115,12 +115,27 @@ public final class Graph {
 		}
 		
 		int i = 0;
-		while(Distribution.randU() < Settings.getDoubleProperty("DEPTH_PROBABILITY") && i++ < Settings.getIntProperty("MAX_DEPTH")){
-			GraphNode child = obj.getRandRef();
+		while(dist.randU() < Settings.getDoubleProperty("DEPTH_PROBABILITY") && i++ < Settings.getIntProperty("MAX_DEPTH")){
+			GraphNode child = obj.getRandRef(dist);
 			if(child == null){
-				return obj;
+				break;	
 			}
 			obj = child;
+		}
+		
+		if(noOverwrite){
+			int j = 0;
+			while(obj.getFreeSlot()==-1){
+				obj = obj.getRandRef(dist);
+				if(obj == null){
+					return null;
+				}
+				j++;
+				
+				if(j > Settings.getIntProperty("MAX_NO_OVERWRITE_TRIES")){
+					return null;
+				}
+			}
 		}
 		
 		return obj;
@@ -138,12 +153,12 @@ public final class Graph {
 		}
 	}
 
-	public void doRandAction(PrintWriter out) {
-		double rnd = Distribution.randU();
+	public void doRandAction(PrintWriter out, Distribution dist) {
+		double rnd = dist.randU();
 		
 		int action = Settings.getRandAction(rnd);
 
-		doAction(action);	
+		doAction(action, dist);	
 	}
 	
 	public synchronized void emptyAllAndGC(){
@@ -151,25 +166,25 @@ public final class Graph {
 		System.gc();
 	}
 
-	private void doAction(int i) {
+	private void doAction(int i, Distribution dist) {
 		switch(i){
 		case 0:
-			read();
+			read(dist);
 			break;
 		case 1:
-			write();
+			write(dist);
 			break;
 		case 2:
-			changeRef();
+			changeRef(dist);
 			break;
 		case 3:
-			allocate();
+			allocate(dist);
 			break;
 		case 4:
-			add();
+			add(dist);
 			break;
 		case 5:
-			remove();
+			remove(dist);
 			break;
 		case 6:
 			block();

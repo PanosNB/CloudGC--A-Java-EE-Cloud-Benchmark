@@ -32,16 +32,16 @@ public class InitGraph extends HttpServlet {
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		int allocs = Settings.getIntProperty("INIT_ALLOCS");
 		int refChanges = Settings.getIntProperty("INIT_REF_CHANGES");
+		Distribution dist = new Distribution();
 		
 		GraphAction.globalGraph.emptyAllAndGC();
-		Distribution.reSeed();
 		
 		for(int i = 0; i < allocs; i++){
-			GraphAction.globalGraph.allocate();
+			GraphAction.globalGraph.allocate(dist);
 		}
 				
 		for(int i = 0; i < refChanges; i++){
-			GraphAction.globalGraph.changeRef();
+			GraphAction.globalGraph.changeRef(dist);
 		}
 		
 		

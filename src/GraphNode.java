@@ -10,9 +10,9 @@ public class GraphNode {
 	private final long id;
 	private volatile static long prevId = 0;
 
-	public GraphNode(boolean isGlobal) {		
-		int payloadSize = (int) Distribution.rand(Settings.getIntProperty("MIN_PAYLOAD_SIZE"), Settings.getIntProperty("MAX_PAYLOAD_SIZE"), Settings.getIntProperty("MED_PAYLOAD_SIZE"));
-		int n = (int) (Distribution.rand(Settings.getIntProperty("MIN_REFS"), Settings.getIntProperty("MAX_REFS"), Settings.getIntProperty("MED_REFS")));
+	public GraphNode(boolean isGlobal, Distribution dist) {		
+		int payloadSize = (int) dist.rand(Settings.getIntProperty("MIN_PAYLOAD_SIZE"), Settings.getIntProperty("MAX_PAYLOAD_SIZE"), Settings.getIntProperty("MED_PAYLOAD_SIZE"));
+		int n = (int) (dist.rand(Settings.getIntProperty("MIN_REFS"), Settings.getIntProperty("MAX_REFS"), Settings.getIntProperty("MED_REFS")));
 		
 		if(payloadSize%8 != 0){
 			payloadSize += (8-payloadSize%8);
@@ -38,22 +38,22 @@ public class GraphNode {
 		return children[i];
 	}
 	
-	public GraphNode getRandRef(){
+	public GraphNode getRandRef(Distribution dist){
 		if(children.length == 0){
 			return null;
 		}
-		int i=Distribution.randUInt(children.length);
+		int i=dist.randUInt(children.length);
 		
 		Tracing.read(this, i);
 		
 		return children[i];
 	}
 	
-	public void setRandRef(GraphNode child){
+	public void setRandRef(GraphNode child, Distribution dist){
 		if(children.length == 0){
 			return;
 		}
-		int i=Distribution.randUInt(children.length);
+		int i=dist.randUInt(children.length);
 		
 		Tracing.write(this, i, child);
 		
@@ -70,22 +70,22 @@ public class GraphNode {
 		children[i] = child;
 	}
 	
-	public byte readRand(){
+	public byte readRand(Distribution dist){
 		if(payload.length == 0){
 			return 0;
 		}
-		int i=Distribution.randUInt(payload.length);
+		int i=dist.randUInt(payload.length);
 		
 		Tracing.readPrim(this, i);
 		
 		return payload[i];
 	}
 	
-	public void writeRand(){
+	public void writeRand(Distribution dist){
 		if(payload.length == 0){
 			return;
 		}
-		int i=Distribution.randUInt(payload.length);
+		int i=dist.randUInt(payload.length);
 		
 		Tracing.store(this, i);
 		
@@ -110,5 +110,15 @@ public class GraphNode {
 	
 	public long getPayloadOffset(){
 		return 8 + 8*children.length;
+	}
+	
+	public int getFreeSlot(){
+		for (int i = 0; i < children.length; i++){
+			if(children[i] == null){
+				return i;
+			}
+		}
+		
+		return -1;
 	}
 }
