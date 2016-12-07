@@ -10,18 +10,17 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.Semaphore;
 
 public final class Graph {
-	private final ConcurrentLinkedDeque<GraphNode> root = new ConcurrentLinkedDeque<GraphNode>();
+	private final GraphNode[] root;
+	private int top = -1;
 	
 	public final Semaphore sharedResource = new Semaphore(Settings.getIntProperty("SHARED_RESOURCE_SIZE"));
 	
-	private final boolean isGlobal;
-	
-	public Graph(boolean isGlobal) {
-		this.isGlobal = isGlobal;
+	public Graph(){
+		root = new GraphNode[Settings.getIntProperty("MAX_FRAME_SIZE")];
 	}
 
 	private void read(Distribution dist){
-		GraphNode obj = getRandomObj(true, dist, false);
+		GraphNode obj = getRandomObj(dist, false);
 		if(obj != null){
 			obj.readRand(dist);
 		}
@@ -29,57 +28,51 @@ public final class Graph {
 	
 
 	private void write(Distribution dist) {
-		GraphNode obj = getRandomObj(true, dist, false);
+		GraphNode obj = getRandomObj(dist, false);
 		if(obj != null){
 			obj.writeRand(dist);
 		}		
 	}
 	
 	public void changeRef(Distribution dist){
-		GraphNode parent = getRandomObj(false, dist, false);
-		GraphNode child = getRandomObj(false, dist, false);
-		
+		GraphNode parent = getRandomObj(dist, false);
+		GraphNode child = getRandomObj(dist, false);
+			
 		if(parent!=null){
 			parent.setRandRef(child, dist);
 		}
 	}
 	
 	public void allocate(Distribution dist){
-		GraphNode parent = getRandomObj(false, dist, true);
-		GraphNode child = new GraphNode(isGlobal, dist);
+		GraphNode parent = null;
+		GraphNode child = new GraphNode(dist);
 		
-		if(parent!=null && dist.randU() > Settings.getDoubleProperty("ALLOCATE_ON_ROOTSET_RATIO")){
+		if(dist.randU() > Settings.getDoubleProperty("ALLOCATE_ON_ROOTSET_RATIO")){
+			parent = getRandomObj(dist, true);
+		}
+		
+		if(parent != null){
 			parent.setRef(parent.getFreeSlot(), child);
-			Tracing.del(child, isGlobal);
+			//Tracing.del(child, isGlobal);
 		} else {
-			root.add(child);
+			addToRoot(child);
 		}
 	}
 	
-	public void add(Distribution dist){
-		GraphNode obj = getRandomObj(true, dist, false);
+	public void add(Distribution dist, Graph prevTop){
+		GraphNode obj = prevTop.getRandomObj(dist, false);
 		
 		if(obj!=null){
-			if(!root.contains(obj)){
-				root.add(obj);
-				Tracing.add(obj, isGlobal);
-			}
+			addToRoot(obj);
+			//Tracing.add(obj, isGlobal);
 		}
 	}
 	
-	private synchronized void remove(Distribution dist){
-		if(root.isEmpty()){
-			return;
+	private void addToRoot(GraphNode obj){
+		if(top + 1 < root.length){
+			top++;
+			root[top] = obj;
 		}
-		
-		long rootCount = root.size();
-		
-		long id = (long) (rootCount - 1 - (rootCount-1)*dist.rand(0, 1, Settings.getDoubleProperty("OBJECTS_DIE_YOUNG_BIAS")));
-		
-		GraphNode obj = getRoot(id);
-		
-		root.remove(obj);
-		Tracing.del(obj, isGlobal);
 	}
 	
 	private void block() {
@@ -94,19 +87,15 @@ public final class Graph {
 		}
 	}
 	
-	private GraphNode getRandomObj(boolean uniform, Distribution dist, boolean noOverwrite){
-		if(root.isEmpty()){
+	public GraphNode getRandomObj(Distribution dist, boolean noOverwrite){
+		if(top == -1){
 			return null;
 		}
 		
-		long id;
-		long rootCount = root.size();
+		int id;
+		int rootCount = top + 1;
 		
-		if(uniform){
-			id = dist.randULong(rootCount);
-		} else {
-			id = (long) (rootCount - 1 - (rootCount-1)*dist.rand(0, 1, Settings.getDoubleProperty("OBJECTS_DIE_YOUNG_BIAS")));
-		}
+		id = (int) dist.randULong(rootCount);
 		
 		GraphNode obj = getRoot(id);
 		
@@ -123,50 +112,26 @@ public final class Graph {
 			obj = child;
 		}
 		
-		if(noOverwrite){
-			int j = 0;
-			while(obj.getFreeSlot()==-1){
-				obj = obj.getRandRef(dist);
-				if(obj == null){
-					return null;
-				}
-				j++;
-				
-				if(j > Settings.getIntProperty("MAX_NO_OVERWRITE_TRIES")){
-					return null;
-				}
-			}
+		if(noOverwrite && obj.getFreeSlot()==-1){
+			return null;
 		}
 		
 		return obj;
 	}
 	
-	private GraphNode getRoot(long pos){
-		Iterator<GraphNode> it = root.descendingIterator();
-		for(long i=0; i<pos && it.hasNext(); i++){
-			it.next();
+	private GraphNode getRoot(int pos){
+		if(pos >= 0 && pos < top - 1){
+			return root[pos];
 		}
-		if(it.hasNext()){
-			return it.next();
-		} else {
-			return null;
-		}
-	}
-
-	public void doRandAction(PrintWriter out, Distribution dist) {
-		double rnd = dist.randU();
-		
-		int action = Settings.getRandAction(rnd);
-
-		doAction(action, dist);	
+		return null;
 	}
 	
 	public synchronized void emptyAllAndGC(){
-		root.clear();
+		empty();
 		System.gc();
 	}
 
-	private void doAction(int i, Distribution dist) {
+	public void doAction(int i, Distribution dist) {
 		switch(i){
 		case 0:
 			read(dist);
@@ -180,12 +145,6 @@ public final class Graph {
 		case 3:
 			allocate(dist);
 			break;
-		case 4:
-			add(dist);
-			break;
-		case 5:
-			remove(dist);
-			break;
 		case 6:
 			block();
 			break;
@@ -193,11 +152,16 @@ public final class Graph {
 	}
 
 	public void empty() {
-		Iterator<GraphNode> it = root.descendingIterator();
-		for(long i=0; it.hasNext(); i++){
-			GraphNode obj = it.next();
-			Tracing.del(obj, false);
+		for(int i = 0; i < top - 1; i++){
+			root[i] = null;
 		}
-		root.clear();
+		top = -1;
+	}
+
+
+	public void traverse() {
+		for(int i = 0; i < top - 1; i++){
+			System.out.println(root[i]);
+		}	
 	}
 }

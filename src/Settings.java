@@ -12,9 +12,9 @@ public class Settings {
 	private static final Properties properties = new Properties();
 	
 	static{
-		properties.put("DEPTH_PROBABILITY", "0.90");
-		properties.put("MAX_DEPTH", "100");
-		properties.put("MAX_NO_OVERWRITE_TRIES", "100");
+		properties.put("DEPTH_PROBABILITY", "0.50");
+		properties.put("MAX_DEPTH", "8");
+		properties.put("MAX_NO_OVERWRITE_TRIES", "4");
 		
 		properties.put("SEED", "666");
 		
@@ -22,30 +22,34 @@ public class Settings {
 		properties.put("MED_PAYLOAD_SIZE", "0");
 		properties.put("MAX_PAYLOAD_SIZE", "0");
 		
-		properties.put("MIN_REFS", "1");
-		properties.put("MED_REFS", "2");
-		properties.put("MAX_REFS", "4");
+		properties.put("MIN_REFS", "4");
+		properties.put("MED_REFS", "8");
+		properties.put("MAX_REFS", "32");
 		
 		properties.put("ACTIONS_PER_REQUEST", "10000");
 		
 		properties.put("OBJECTS_DIE_YOUNG_BIAS", "0.99");		
-		properties.put("ALLOCATE_ON_ROOTSET_RATIO", "0.25");
+		properties.put("ALLOCATE_ON_ROOTSET_RATIO", "0.10");
 		
-		properties.put("INIT_ALLOCS", "0");		
-		properties.put("INIT_REF_CHANGES", "0");
+		properties.put("INIT_FRAMES", "32");
+		properties.put("INIT_ALLOCS", "1000000");		
+		properties.put("INIT_REF_CHANGES", "100");
 		
 		properties.put("LOCAL_ACTION_RATIO", "0");
 		
 		properties.put("READ", "0");
 		properties.put("WRITE", "0");
-		properties.put("REFCHANGE", "25");
-		properties.put("ALLOC", "5");
-		properties.put("ADD", "5");
-		properties.put("REMOVE", "4");
+		properties.put("REFCHANGE", "50");
+		properties.put("ALLOC", "10");
+		properties.put("ADD", "1");
+		properties.put("REMOVE", "1");
 		properties.put("BLOCK", "0");
 		
 		properties.put("SHARED_RESOURCE_SIZE", "4");
 		properties.put("SHARED_RESOURCE_TIME", "100");
+		
+		properties.put("NEW_FRAME_ADDS", "16");
+		properties.put("MAX_FRAME_SIZE", "100000");
 		
 	}
 		

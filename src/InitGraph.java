@@ -30,20 +30,28 @@ public class InitGraph extends HttpServlet {
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		int frames = Settings.getIntProperty("INIT_FRAMES");
 		int allocs = Settings.getIntProperty("INIT_ALLOCS");
 		int refChanges = Settings.getIntProperty("INIT_REF_CHANGES");
 		Distribution dist = new Distribution();
 		
-		GraphAction.globalGraph.emptyAllAndGC();
-		
-		for(int i = 0; i < allocs; i++){
-			GraphAction.globalGraph.allocate(dist);
+		for(int j = 0; j < frames; j++){
+			
+			System.err.println("Init frame "+j);
+			
+			GraphAction.globalStack.addTopFrame(dist);
+			
+			for(int i = 0; i < allocs; i++){
+				GraphAction.globalStack.top().allocate(dist);
+			}
+					
+			for(int i = 0; i < refChanges; i++){
+				GraphAction.globalStack.top().changeRef(dist);
+			}
+			
 		}
-				
-		for(int i = 0; i < refChanges; i++){
-			GraphAction.globalGraph.changeRef(dist);
-		}
 		
+		System.gc();
 		
 		Runtime runtime = Runtime.getRuntime();
 		response.getWriter().append("" + (runtime.totalMemory() - runtime.freeMemory())+"\n");

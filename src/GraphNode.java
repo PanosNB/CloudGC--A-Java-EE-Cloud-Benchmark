@@ -7,10 +7,10 @@ license that can be found in the LICENSE file.
 public class GraphNode {
 	private final GraphNode[] children;
 	private byte[] payload;
-	private final long id;
-	private volatile static long prevId = 0;
+	/*private final long id;
+	private volatile static long prevId = 0;*/
 
-	public GraphNode(boolean isGlobal, Distribution dist) {		
+	public GraphNode(Distribution dist) {		
 		int payloadSize = (int) dist.rand(Settings.getIntProperty("MIN_PAYLOAD_SIZE"), Settings.getIntProperty("MAX_PAYLOAD_SIZE"), Settings.getIntProperty("MED_PAYLOAD_SIZE"));
 		int n = (int) (dist.rand(Settings.getIntProperty("MIN_REFS"), Settings.getIntProperty("MAX_REFS"), Settings.getIntProperty("MED_REFS")));
 		
@@ -21,11 +21,11 @@ public class GraphNode {
 		children = new GraphNode[n];
 		payload = new byte[payloadSize];
 		
-		synchronized(GraphNode.class){
+		/*synchronized(GraphNode.class){
 			id = ++prevId;
-		}
+		}*/
 		
-		Tracing.alloc(this, isGlobal);
+		//Tracing.alloc(this, isGlobal);
 	}
 	
 	public GraphNode getRef(int i){
@@ -93,7 +93,8 @@ public class GraphNode {
 	}
 	
 	public long getId(){
-		return id;
+		return -1;
+		//return id;
 	}
 	
 	public long getSize(){
@@ -120,5 +121,21 @@ public class GraphNode {
 		}
 		
 		return -1;
+	}
+	
+	public int getUsedSlots(){
+		int count = 0;
+		for (int i = 0; i < children.length; i++){
+			if(children[i] != null){
+				count++;
+			}
+		}
+		
+		return count;
+	}
+	
+	@Override
+	public String toString(){
+		return getSize() + "\t" + getUsedSlots();
 	}
 }

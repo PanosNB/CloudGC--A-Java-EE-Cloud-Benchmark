@@ -19,7 +19,7 @@ import javax.servlet.http.HttpServletResponse;
 public class GraphAction extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	
-	public static final Graph globalGraph = new Graph(true); 
+	public static final StackFrames globalStack = new StackFrames(); 
        
     /**
      * @see HttpServlet#HttpServlet()
@@ -34,32 +34,13 @@ public class GraphAction extends HttpServlet {
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		
-		Graph localGraph = new Graph(false);
-		
-		int allocs = Settings.getIntProperty("INIT_ALLOCS");
-		int refChanges = Settings.getIntProperty("INIT_REF_CHANGES");
+		StackFrames localStack = new StackFrames(globalStack);
 		Distribution dist = new Distribution();
 		
-		for(int i = 0; i < allocs; i++){
-			//if(Distribution.randU() < Settings.getDoubleProperty("LOCAL_ACTION_RATIO")){
-				localGraph.allocate(dist);
-			//} else {
-			//	globalGraph.allocate();
-			//}
-		}
-				
-		for(int i = 0; i < refChanges; i++){
-			localGraph.changeRef(dist);
-		}
-		
 		for(int i = 0; i < Settings.getIntProperty("ACTIONS_PER_REQUEST"); i++){
-			if(dist.randU() < Settings.getDoubleProperty("LOCAL_ACTION_RATIO")){
-				localGraph.doRandAction(response.getWriter(), dist);
-			} else {
-				globalGraph.doRandAction(response.getWriter(), dist);
-			}
+			localStack.doRandAction(response.getWriter(), dist);
 		}
-		localGraph.empty();
+		localStack.empty();
 		Runtime runtime = Runtime.getRuntime();
 		response.getWriter().append("" + (System.currentTimeMillis())+"\n");
 		response.getWriter().append("" + (runtime.totalMemory() - runtime.freeMemory())+"\n");
