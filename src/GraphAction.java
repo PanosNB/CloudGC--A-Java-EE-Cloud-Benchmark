@@ -19,7 +19,8 @@ import javax.servlet.http.HttpServletResponse;
 public class GraphAction extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	
-	public static final StackFrames globalStack = new StackFrames(); 
+	public static final StackFrames globalStack = new StackFrames();
+	public static volatile int outOfMemErrs = 0;
        
     /**
      * @see HttpServlet#HttpServlet()
@@ -38,7 +39,19 @@ public class GraphAction extends HttpServlet {
 		Distribution dist = new Distribution();
 		
 		for(int i = 0; i < Settings.getIntProperty("ACTIONS_PER_REQUEST"); i++){
-			localStack.doRandAction(response.getWriter(), dist);
+			try {
+				localStack.doRandAction(response.getWriter(), dist);
+			} catch (OutOfMemoryError e){
+				outOfMemErrs++;
+				System.err.println("Out of Memory " + outOfMemErrs +" times!");
+				System.err.println("Removing top frame of local stack!");
+				localStack.removeTopFrame();
+				if(outOfMemErrs>1){
+					System.err.println("Removing top frame of global stack!");
+					globalStack.removeTopFrame();
+				}
+				
+			}
 		}
 		localStack.empty();
 		Runtime runtime = Runtime.getRuntime();

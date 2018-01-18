@@ -36,17 +36,23 @@ public class InitGraph extends HttpServlet {
 		Distribution dist = new Distribution();
 		
 		for(int j = 0; j < frames; j++){
+			try {
 			
-			System.err.println("Init frame "+j);
+				System.err.println("Init frame "+j);
+				
+				GraphAction.globalStack.addTopFrame(dist);
+				
+				for(int i = 0; i < allocs; i++){
+					GraphAction.globalStack.top().allocate(dist);
+				}
+						
+				for(int i = 0; i < refChanges; i++){
+					GraphAction.globalStack.top().changeRef(dist);
+				}
 			
-			GraphAction.globalStack.addTopFrame(dist);
-			
-			for(int i = 0; i < allocs; i++){
-				GraphAction.globalStack.top().allocate(dist);
-			}
-					
-			for(int i = 0; i < refChanges; i++){
-				GraphAction.globalStack.top().changeRef(dist);
+			} catch (OutOfMemoryError e){
+				System.err.println("Out of Memory! Removing top frame of global stack!");
+				GraphAction.globalStack.removeTopFrame();
 			}
 			
 		}

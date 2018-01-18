@@ -29,26 +29,11 @@ public class GetGCStats extends HttpServlet {
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		long totalGarbageCollections = 0;
-	    long garbageCollectionTime = 0;
-
 	    for(GarbageCollectorMXBean gc :
 	            ManagementFactory.getGarbageCollectorMXBeans()) {
-
-	        long count = gc.getCollectionCount();
-
-	        if(count >= 0) {
-	            totalGarbageCollections += count;
-	        }
-
-	        long time = gc.getCollectionTime();
-
-	        if(time >= 0) {
-	            garbageCollectionTime += time;
-	        }
+	    	
+	    	response.getWriter().println(gc.getName() + "\t" + gc.getCollectionCount() + "\t" + gc.getCollectionTime());
 	    }
-	    response.getWriter().append("" + totalGarbageCollections+" ");
-	    response.getWriter().append("" + garbageCollectionTime+"\n");
 	}
 
 	/**

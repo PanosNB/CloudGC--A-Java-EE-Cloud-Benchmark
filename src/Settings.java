@@ -14,7 +14,6 @@ public class Settings {
 	static{
 		properties.put("DEPTH_PROBABILITY", "0.50");
 		properties.put("MAX_DEPTH", "8");
-		properties.put("MAX_NO_OVERWRITE_TRIES", "4");
 		
 		properties.put("SEED", "666");
 		
@@ -28,7 +27,6 @@ public class Settings {
 		
 		properties.put("ACTIONS_PER_REQUEST", "10000");
 		
-		properties.put("OBJECTS_DIE_YOUNG_BIAS", "0.99");		
 		properties.put("ALLOCATE_ON_ROOTSET_RATIO", "0.10");
 		
 		properties.put("INIT_FRAMES", "32");
